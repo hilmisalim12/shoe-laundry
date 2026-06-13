@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, spacing } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
+import { CUSTOMER_MAX_WIDTH } from '@/src/theme/customerTheme';
 
 type Props = ViewProps & {
   scroll?: boolean;
@@ -31,15 +32,22 @@ export function ScreenContainer({
   style,
   ...props
 }: Props) {
+  const theme = useAppTheme();
   const insets = useSafeAreaInsets();
-  const padTop = insets.top + spacing.lg;
+  const horizontalPad = theme.isCustomer ? 20 : theme.spacing.xl;
+  const padTop = insets.top + (theme.isCustomer ? theme.spacing.md : theme.spacing.lg);
   const padBottom = insets.bottom + bottomPad;
 
   const inner = (
     <View
       style={[
         styles.inner,
-        { maxWidth, paddingTop: padTop, paddingBottom: padBottom },
+        {
+          maxWidth: theme.isCustomer ? CUSTOMER_MAX_WIDTH : maxWidth,
+          paddingTop: padTop,
+          paddingBottom: padBottom,
+          paddingHorizontal: horizontalPad,
+        },
         style,
       ]}
       {...props}
@@ -56,7 +64,7 @@ export function ScreenContainer({
       keyboardShouldPersistTaps="handled"
       refreshControl={
         onRefresh ? (
-          <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
         ) : undefined
       }
     >
@@ -67,7 +75,7 @@ export function ScreenContainer({
   );
 
   const body = (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.colors.background }]}>
       {scroll ? scrollContent : inner}
     </View>
   );
@@ -88,8 +96,8 @@ export function ScreenContainer({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  root: { flex: 1, backgroundColor: colors.background, alignItems: 'center', minHeight: 0 },
+  root: { flex: 1, alignItems: 'center', minHeight: 0 },
   scroll: { flex: 1, width: '100%' },
   scrollContent: { flexGrow: 1, alignItems: 'center' },
-  inner: { width: '100%', paddingHorizontal: spacing.xl, minHeight: 0 },
+  inner: { width: '100%', minHeight: 0 },
 });

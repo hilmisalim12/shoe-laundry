@@ -15,7 +15,7 @@ import {
   toScheduledIso,
 } from '@/src/lib/datetime';
 import { Button } from '@/src/components/ui/Button';
-import { colors, radius, shadows, spacing, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 const TIME_OPTIONS = [
   { h: 9, m: 0 }, { h: 10, m: 0 }, { h: 11, m: 0 }, { h: 12, m: 0 },
@@ -29,6 +29,8 @@ type Props = {
 };
 
 export function DateTimePickerField({ value, onChange }: Props) {
+  const theme = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [open, setOpen] = useState(false);
   const parsed = parseScheduledValue(value);
   const today = startOfDay(new Date());
@@ -74,13 +76,13 @@ export function DateTimePickerField({ value, onChange }: Props) {
     <>
       <Pressable onPress={() => setOpen(true)} style={styles.trigger}>
         <View style={styles.triggerIcon}>
-          <Ionicons name="calendar-outline" size={22} color={colors.primary} />
+          <Ionicons name="calendar-outline" size={22} color={theme.colors.primary} />
         </View>
         <View style={styles.triggerText}>
           <Text style={styles.triggerLabel}>Custom date & time</Text>
           <Text style={styles.triggerValue}>{formatFriendlySchedule(value)}</Text>
         </View>
-        <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+        <Ionicons name="chevron-down" size={18} color={theme.colors.textMuted} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -90,14 +92,13 @@ export function DateTimePickerField({ value, onChange }: Props) {
             <Text style={styles.popoverTitle}>Pick date & time</Text>
             <Text style={styles.popoverSubtitle}>Available Mon–Sat, 9:00 AM – 6:00 PM</Text>
 
-            {/* Calendar */}
             <View style={styles.calendarHeader}>
               <Pressable onPress={() => shiftMonth(-1)} style={styles.navBtn} hitSlop={8}>
-                <Ionicons name="chevron-back" size={20} color={colors.text} />
+                <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
               </Pressable>
               <Text style={styles.monthLabel}>{MONTHS[viewMonth]} {viewYear}</Text>
               <Pressable onPress={() => shiftMonth(1)} style={styles.navBtn} hitSlop={8}>
-                <Ionicons name="chevron-forward" size={20} color={colors.text} />
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.text} />
               </Pressable>
             </View>
 
@@ -138,7 +139,6 @@ export function DateTimePickerField({ value, onChange }: Props) {
               })}
             </View>
 
-            {/* Time */}
             <Text style={styles.timeTitle}>Select time</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.timeRow}>
               {TIME_OPTIONS.map(({ h, m }) => {
@@ -158,7 +158,7 @@ export function DateTimePickerField({ value, onChange }: Props) {
             </ScrollView>
 
             <View style={styles.previewBox}>
-              <Ionicons name="time-outline" size={18} color={colors.primary} />
+              <Ionicons name="time-outline" size={18} color={theme.colors.primary} />
               <Text style={styles.previewText}>{preview}</Text>
             </View>
 
@@ -173,102 +173,104 @@ export function DateTimePickerField({ value, onChange }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  trigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.lg,
-    ...shadows.card,
-  },
-  triggerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  triggerText: { flex: 1 },
-  triggerLabel: { ...typography.caption, color: colors.textMuted, marginBottom: 2 },
-  triggerValue: { ...typography.label, color: colors.text },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  popover: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    ...shadows.card,
-    zIndex: 1,
-  },
-  popoverTitle: { ...typography.h3, marginBottom: spacing.xs },
-  popoverSubtitle: { ...typography.caption, marginBottom: spacing.lg, color: colors.textSecondary },
-  calendarHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  navBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.borderLight,
-  },
-  monthLabel: { ...typography.label },
-  weekdayRow: { flexDirection: 'row', marginBottom: spacing.xs },
-  weekday: {
-    flex: 1,
-    textAlign: 'center',
-    ...typography.caption,
-    color: colors.textMuted,
-    fontWeight: '600',
-  },
-  daysGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: spacing.lg },
-  dayCell: { width: '14.28%', aspectRatio: 1, padding: 2 },
-  dayBtn: { alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm },
-  daySelected: { backgroundColor: colors.primary },
-  dayToday: { borderWidth: 1, borderColor: colors.primary },
-  dayDisabled: { opacity: 0.35 },
-  dayText: { ...typography.bodySm, fontWeight: '500' },
-  dayTextSelected: { color: colors.white, fontWeight: '700' },
-  dayTextDisabled: { color: colors.textMuted },
-  timeTitle: { ...typography.label, marginBottom: spacing.sm },
-  timeRow: { gap: spacing.sm, paddingBottom: spacing.sm },
-  timeChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
-  },
-  timeChipActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-  timeChipText: { ...typography.bodySm },
-  timeChipTextActive: { color: colors.primaryDark, fontWeight: '600' },
-  previewBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.primaryLight,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginTop: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  previewText: { ...typography.bodySm, flex: 1, color: colors.primaryDark, fontWeight: '500' },
-  actions: { flexDirection: 'row', gap: spacing.md },
-});
+function createStyles(theme: ReturnType<typeof useAppTheme>) {
+  return StyleSheet.create({
+    trigger: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.md,
+      backgroundColor: theme.colors.white,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.lg,
+      ...theme.shadows.card,
+    },
+    triggerIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    triggerText: { flex: 1 },
+    triggerLabel: { ...theme.typography.caption, color: theme.colors.textMuted, marginBottom: 2 },
+    triggerValue: { ...theme.typography.label, color: theme.colors.text },
+    backdrop: {
+      flex: 1,
+      backgroundColor: theme.colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: theme.spacing.xl,
+    },
+    popover: {
+      width: '100%',
+      maxWidth: 400,
+      backgroundColor: theme.colors.white,
+      borderRadius: theme.radius.lg,
+      padding: theme.spacing.xl,
+      ...theme.shadows.card,
+      zIndex: 1,
+    },
+    popoverTitle: { ...theme.typography.h3, marginBottom: theme.spacing.xs },
+    popoverSubtitle: { ...theme.typography.caption, marginBottom: theme.spacing.lg, color: theme.colors.textSecondary },
+    calendarHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: theme.spacing.md,
+    },
+    navBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.borderLight,
+    },
+    monthLabel: { ...theme.typography.label },
+    weekdayRow: { flexDirection: 'row', marginBottom: theme.spacing.xs },
+    weekday: {
+      flex: 1,
+      textAlign: 'center',
+      ...theme.typography.caption,
+      color: theme.colors.textMuted,
+      fontWeight: '600',
+    },
+    daysGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.lg },
+    dayCell: { width: '14.28%', aspectRatio: 1, padding: 2 },
+    dayBtn: { alignItems: 'center', justifyContent: 'center', borderRadius: theme.radius.sm },
+    daySelected: { backgroundColor: theme.colors.primary },
+    dayToday: { borderWidth: 1, borderColor: theme.colors.primary },
+    dayDisabled: { opacity: 0.35 },
+    dayText: { ...theme.typography.bodySm, fontWeight: '500' },
+    dayTextSelected: { color: theme.colors.white, fontWeight: '700' },
+    dayTextDisabled: { color: theme.colors.textMuted },
+    timeTitle: { ...theme.typography.label, marginBottom: theme.spacing.sm },
+    timeRow: { gap: theme.spacing.sm, paddingBottom: theme.spacing.sm },
+    timeChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: theme.radius.full,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.white,
+    },
+    timeChipActive: { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary },
+    timeChipText: { ...theme.typography.bodySm },
+    timeChipTextActive: { color: theme.colors.primaryDark, fontWeight: '600' },
+    previewBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.sm,
+      backgroundColor: theme.colors.primaryLight,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      marginTop: theme.spacing.md,
+      marginBottom: theme.spacing.lg,
+    },
+    previewText: { ...theme.typography.bodySm, flex: 1, color: theme.colors.primaryDark, fontWeight: '500' },
+    actions: { flexDirection: 'row', gap: theme.spacing.md },
+  });
+}

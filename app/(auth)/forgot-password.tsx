@@ -9,9 +9,10 @@ import { FormField } from '@/src/components/ui/FormField';
 import { InlineMessage } from '@/src/components/ui/InlineMessage';
 import { Input } from '@/src/components/ui/Input';
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
-import { colors, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 export default function ForgotPasswordScreen() {
+  const theme = useAppTheme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,7 +46,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <ScreenContainer scroll maxWidth={480} keyboardAvoid>
+    <ScreenContainer scroll keyboardAvoid>
       <AuthCard
         title="Forgot password?"
         subtitle="Enter your email and we'll help you reset your password"
@@ -74,11 +75,13 @@ export default function ForgotPasswordScreen() {
           }
           style={styles.demoLink}
         >
-          <Text style={styles.demoText}>Already have a reset link? Set new password →</Text>
+          <Text style={[theme.typography.bodySm, styles.link, { color: theme.colors.primary }]}>
+            Already have a reset link? Set new password →
+          </Text>
         </Pressable>
 
         <Pressable onPress={() => router.back()} style={styles.backWrap}>
-          <Text style={styles.backText}>← Back to sign in</Text>
+          <Text style={[theme.typography.bodySm, { color: theme.colors.textSecondary }]}>← Back to sign in</Text>
         </Pressable>
       </AuthCard>
     </ScreenContainer>
@@ -87,7 +90,6 @@ export default function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   demoLink: { alignItems: 'center' },
-  demoText: { ...typography.bodySm, color: colors.primary, fontWeight: '600' },
+  link: { fontWeight: '600' },
   backWrap: { alignItems: 'center' },
-  backText: { ...typography.bodySm, color: colors.textSecondary },
 });

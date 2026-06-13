@@ -17,7 +17,8 @@ import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import { useBookingStore } from '@/src/stores/bookingStore';
 import { useUserStore } from '@/src/stores/userStore';
 import { SHOP_LOCATION, type Service } from '@/src/types';
-import { colors, spacing, typography } from '@/src/theme/tokens';
+import { customerColors } from '@/src/theme/customerTheme';
+import { spacing, typography } from '@/src/theme/tokens';
 
 const STEPS = [
   { number: 1, label: 'Service' },
@@ -170,7 +171,7 @@ export default function BookScreen() {
   }
 
   return (
-    <ScreenContainer scroll maxWidth={640} bottomPad={120} keyboardAvoid>
+    <ScreenContainer scroll bottomPad={120} keyboardAvoid>
       <CustomerPageHeader title="Book cleaning" subtitle="3 quick steps — pay with cash when we meet you" />
 
       {booking.selectedServiceId && selectedService ? (
@@ -415,39 +416,39 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
+    borderColor: customerColors.border,
+    backgroundColor: customerColors.white,
   },
-  chipActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-  chipText: { ...typography.bodySm },
-  chipTextActive: { color: colors.primaryDark, fontWeight: '600' },
+  chipActive: { backgroundColor: customerColors.primaryLight, borderColor: customerColors.primary },
+  chipText: { ...typography.bodySm, color: customerColors.foreground },
+  chipTextActive: { color: customerColors.primaryDark, fontWeight: '600' },
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   qtyBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: customerColors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: customerColors.white,
   },
-  qtyBtnText: { fontSize: 22, fontWeight: '600', color: colors.primary },
+  qtyBtnText: { fontSize: 22, fontWeight: '600', color: customerColors.primary },
   qtyValue: { ...typography.h3, minWidth: 32, textAlign: 'center' },
   optionRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
   option: {
     flex: 1,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: customerColors.border,
     borderRadius: 16,
     padding: spacing.lg,
-    backgroundColor: colors.white,
+    backgroundColor: customerColors.white,
   },
-  optionActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  optionActive: { borderColor: customerColors.primary, backgroundColor: customerColors.primaryLight },
   optionIcon: { fontSize: 28, marginBottom: spacing.sm },
   optionTitle: { ...typography.label, marginBottom: 4 },
   optionDesc: { ...typography.caption, lineHeight: 18 },
-  shopCard: { backgroundColor: colors.primaryLight, marginBottom: spacing.lg },
+  shopCard: { backgroundColor: customerColors.primaryLight, marginBottom: spacing.lg },
   summaryCard: { marginBottom: spacing.lg },
   summaryRow: {
     flexDirection: 'row',
@@ -456,10 +457,14 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     marginBottom: spacing.sm,
   },
-  summaryHighlightLabel: { fontWeight: '600', color: colors.text },
-  summaryHighlightValue: { color: colors.primary },
-  divider: { height: 1, backgroundColor: colors.borderLight, marginVertical: spacing.md },
-  cashCard: { backgroundColor: colors.primaryLight, marginBottom: spacing.xl, borderColor: '#99F6E4' },
-  cashTitle: { ...typography.label, color: colors.primaryDark, marginBottom: spacing.sm },
+  summaryHighlightLabel: { fontWeight: '600', color: customerColors.text },
+  summaryHighlightValue: { color: customerColors.primary },
+  divider: { height: 1, backgroundColor: customerColors.borderLight, marginVertical: spacing.md },
+  cashCard: {
+    backgroundColor: customerColors.primaryLight,
+    marginBottom: spacing.xl,
+    borderColor: customerColors.primaryLight,
+  },
+  cashTitle: { ...typography.label, color: customerColors.primaryDark, marginBottom: spacing.sm },
   navRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
 });

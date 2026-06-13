@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/src/components/ui/Card';
-import { colors, spacing, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 type Props = {
   title: string;
@@ -10,16 +10,18 @@ type Props = {
 };
 
 export function AuthCard({ title, subtitle, children }: Props) {
+  const theme = useAppTheme();
+
   return (
     <View style={styles.wrap}>
       <View style={styles.brandBlock}>
-        <Text style={styles.brand}>Shoe Laundry</Text>
-        <Text style={styles.tagline}>Professional shoe cleaning service</Text>
+        <Text style={[theme.typography.h2, { color: theme.colors.primary }]}>Shoe Laundry</Text>
+        <Text style={theme.typography.bodySm}>Professional shoe cleaning service</Text>
       </View>
       <Card style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          <Text style={theme.typography.h2}>{title}</Text>
+          {subtitle ? <Text style={[theme.typography.bodySm, styles.subtitle]}>{subtitle}</Text> : null}
         </View>
         <View style={styles.content}>{children}</View>
       </Card>
@@ -28,13 +30,10 @@ export function AuthCard({ title, subtitle, children }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: '100%', gap: spacing.xl },
-  brandBlock: { alignItems: 'center', gap: spacing.xs },
-  brand: { ...typography.h2, color: colors.primary },
-  tagline: { ...typography.bodySm },
-  card: { gap: spacing.lg },
-  header: { gap: spacing.xs, alignItems: 'center' },
-  title: { ...typography.h2 },
-  subtitle: { ...typography.bodySm, textAlign: 'center' },
-  content: { gap: spacing.lg },
+  wrap: { width: '100%', gap: 24 },
+  brandBlock: { alignItems: 'center', gap: 4 },
+  card: { gap: 16 },
+  header: { gap: 4, alignItems: 'center' },
+  subtitle: { textAlign: 'center' },
+  content: { gap: 16 },
 });

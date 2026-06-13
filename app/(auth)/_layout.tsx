@@ -1,6 +1,8 @@
 import { Slot, usePathname } from 'expo-router';
 
 import { GuestOnly } from '@/src/components/AuthGuard';
+import { CustomerPhoneShell } from '@/src/components/customer/CustomerPhoneShell';
+import { CustomerThemeProvider } from '@/src/theme/AppThemeContext';
 
 export default function AuthLayout() {
   const pathname = usePathname();
@@ -9,7 +11,11 @@ export default function AuthLayout() {
 
   return (
     <GuestOnly allowWhenAuthenticated={isPasswordFlow}>
-      <Slot />
+      <CustomerThemeProvider>
+        <CustomerPhoneShell>
+          <Slot />
+        </CustomerPhoneShell>
+      </CustomerThemeProvider>
     </GuestOnly>
   );
 }

@@ -1,11 +1,11 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radius, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 type Props = {
   title: string;
   onPress: () => void;
-  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'surface';
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
@@ -23,7 +23,9 @@ export function Button({
   flex,
   size = 'default',
 }: Props) {
-  const height = size === 'sm' ? 36 : size === 'lg' ? 52 : 44;
+  const theme = useAppTheme();
+  const height = size === 'sm' ? 36 : theme.isCustomer ? 48 : size === 'lg' ? 52 : 44;
+  const pill = theme.isCustomer;
 
   return (
     <Pressable
@@ -34,30 +36,42 @@ export function Button({
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
       style={({ pressed }) => [
         styles.base,
-        { height },
+        {
+          height,
+          borderRadius: pill ? theme.radius.full : theme.radius.md,
+          paddingHorizontal: theme.isCustomer ? 20 : 16,
+        },
         fullWidth && styles.fullWidth,
         flex && styles.flex,
-        variant === 'default' && styles.default,
-        variant === 'secondary' && styles.secondary,
-        variant === 'outline' && styles.outline,
-        variant === 'ghost' && styles.ghost,
-        variant === 'destructive' && styles.destructive,
+        variant === 'default' && { backgroundColor: theme.colors.primary },
+        variant === 'secondary' && { backgroundColor: theme.colors.secondary },
+        variant === 'outline' && {
+          backgroundColor: theme.colors.background,
+          borderWidth: 1,
+          borderColor: theme.isCustomer ? theme.colors.primary : theme.colors.border,
+        },
+        variant === 'ghost' && { backgroundColor: 'transparent' },
+        variant === 'surface' && { backgroundColor: theme.colors.card },
+        variant === 'destructive' && { backgroundColor: theme.colors.destructive },
         (disabled || loading) && styles.disabled,
         pressed && !disabled && !loading && styles.pressed,
       ]}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'default' || variant === 'destructive' ? colors.primaryForeground : colors.foreground}
+          color={variant === 'default' || variant === 'destructive' ? theme.colors.primaryForeground : theme.colors.foreground}
         />
       ) : (
         <Text
           style={[
-            styles.label,
-            size === 'sm' && styles.labelSm,
-            variant === 'default' && styles.defaultLabel,
-            variant === 'destructive' && styles.destructiveLabel,
-            (variant === 'secondary' || variant === 'outline' || variant === 'ghost') && styles.mutedLabel,
+            theme.typography.label,
+            size === 'sm' && { fontSize: 13 },
+            variant === 'default' && { color: theme.colors.primaryForeground },
+            variant === 'destructive' && { color: theme.colors.destructiveForeground },
+            variant === 'surface' && { color: theme.colors.primary },
+            (variant === 'secondary' || variant === 'outline' || variant === 'ghost') && {
+              color: variant === 'outline' && theme.isCustomer ? theme.colors.primary : theme.colors.secondaryForeground,
+            },
           ]}
         >
           {title}
@@ -69,24 +83,12 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
     minWidth: 80,
   },
   fullWidth: { width: '100%' },
   flex: { flex: 1 },
-  default: { backgroundColor: colors.primary },
-  secondary: { backgroundColor: colors.secondary },
-  outline: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
-  ghost: { backgroundColor: 'transparent' },
-  destructive: { backgroundColor: colors.destructive },
   disabled: { opacity: 0.5 },
   pressed: { opacity: 0.92 },
-  label: { ...typography.label, fontSize: 14 },
-  labelSm: { fontSize: 13 },
-  defaultLabel: { color: colors.primaryForeground },
-  destructiveLabel: { color: colors.destructiveForeground },
-  mutedLabel: { color: colors.secondaryForeground },
 });

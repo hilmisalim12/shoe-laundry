@@ -1,20 +1,23 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
-const toneMap = {
-  default: { bg: colors.secondary, text: colors.secondaryForeground },
-  success: { bg: colors.successBg, text: colors.successForeground },
-  warning: { bg: colors.warningBg, text: colors.warningForeground },
-  danger: { bg: colors.dangerBg, text: colors.destructive },
-  primary: { bg: colors.primaryLight, text: colors.infoForeground },
-};
+export function Badge({ label, tone = 'default' }: { label: string; tone?: 'default' | 'success' | 'warning' | 'danger' | 'primary' }) {
+  const theme = useAppTheme();
 
-export function Badge({ label, tone = 'default' }: { label: string; tone?: keyof typeof toneMap }) {
+  const toneMap = {
+    default: { bg: theme.colors.secondary, text: theme.colors.secondaryForeground },
+    success: { bg: theme.colors.successBg, text: theme.colors.successForeground },
+    warning: { bg: theme.colors.warningBg, text: theme.colors.warningForeground },
+    danger: { bg: theme.colors.dangerBg, text: theme.colors.destructive },
+    primary: { bg: theme.colors.infoBg, text: theme.colors.infoForeground },
+  };
+
   const palette = toneMap[tone];
+
   return (
-    <View style={[styles.badge, { backgroundColor: palette.bg }]}>
-      <Text style={[styles.text, { color: palette.text }]}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: palette.bg, borderRadius: theme.radius.full }]}>
+      <Text style={[theme.typography.caption, styles.text, { color: palette.text }]}>{label}</Text>
     </View>
   );
 }
@@ -23,10 +26,9 @@ const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: radius.full,
+    paddingVertical: 4,
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  text: { ...typography.caption, fontWeight: '600' },
+  text: { fontWeight: '600' },
 });

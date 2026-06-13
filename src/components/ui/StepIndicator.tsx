@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 type Step = { number: number; label: string };
 
@@ -12,25 +12,72 @@ type Props = {
 };
 
 export function StepIndicator({ steps, current, onStepPress, maxReachable = current }: Props) {
+  const theme = useAppTheme();
+
   return (
     <View style={styles.wrap}>
       {steps.map((step, index) => {
         const done = step.number < current;
         const active = step.number === current;
         const reachable = step.number <= maxReachable;
+        const doneColor = theme.colors.primary;
         return (
           <View key={step.number} style={styles.item}>
             <Pressable
               disabled={!onStepPress || !reachable}
               onPress={() => onStepPress?.(step.number)}
-              style={[styles.circle, active && styles.circleActive, done && styles.circleDone]}
+              style={[
+                styles.circle,
+                {
+                  borderColor: active || done ? theme.colors.primary : theme.colors.border,
+                  backgroundColor: active
+                    ? theme.colors.primary
+                    : done
+                      ? theme.isCustomer
+                        ? theme.colors.successBg
+                        : theme.colors.primaryLight
+                      : theme.colors.white,
+                },
+              ]}
             >
-              <Text style={[styles.circleText, active && styles.circleTextOnPrimary, done && !active && styles.circleTextDone]}>
+              <Text
+                style={[
+                  theme.typography.label,
+                  {
+                    color: active
+                      ? theme.colors.primaryForeground
+                      : done
+                        ? doneColor
+                        : theme.colors.textMuted,
+                  },
+                ]}
+              >
                 {done ? '✓' : step.number}
               </Text>
             </Pressable>
-            <Text style={[styles.label, active && styles.labelActive]}>{step.label}</Text>
-            {index < steps.length - 1 ? <View style={[styles.connector, done && styles.connectorDone]} /> : null}
+            <Text
+              style={[
+                theme.typography.caption,
+                styles.label,
+                active && { color: theme.colors.primary, fontWeight: '600' },
+              ]}
+            >
+              {step.label}
+            </Text>
+            {index < steps.length - 1 ? (
+              <View
+                style={[
+                  styles.connector,
+                    {
+                      backgroundColor: done
+                        ? theme.isCustomer
+                          ? theme.colors.primary
+                          : theme.colors.primaryLight
+                        : theme.colors.border,
+                    },
+                ]}
+              />
+            ) : null}
           </View>
         );
       })}
@@ -39,34 +86,24 @@ export function StepIndicator({ steps, current, onStepPress, maxReachable = curr
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: spacing.xxl },
+  wrap: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 32 },
   item: { flex: 1, alignItems: 'center', position: 'relative' },
   circle: {
     width: 40,
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
-  circleActive: { borderColor: colors.primary, backgroundColor: colors.primary },
-  circleDone: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  circleText: { ...typography.label, color: colors.textMuted },
-  circleTextOnPrimary: { color: colors.white },
-  circleTextDone: { color: colors.primaryDark },
-  label: { ...typography.caption, marginTop: spacing.sm, textAlign: 'center', color: colors.textMuted },
-  labelActive: { color: colors.primary, fontWeight: '600' },
+  label: { marginTop: 8, textAlign: 'center' },
   connector: {
     position: 'absolute',
     top: 20,
     left: '50%',
     width: '100%',
     height: 2,
-    backgroundColor: colors.border,
     zIndex: 0,
   },
-  connectorDone: { backgroundColor: colors.primaryLight },
 });

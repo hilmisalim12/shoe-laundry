@@ -10,9 +10,10 @@ import { InlineMessage } from '@/src/components/ui/InlineMessage';
 import { Input } from '@/src/components/ui/Input';
 import { PasswordInput } from '@/src/components/ui/PasswordInput';
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
-import { colors, spacing, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 export default function LoginScreen() {
+  const theme = useAppTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <ScreenContainer scroll maxWidth={480} keyboardAvoid>
+    <ScreenContainer scroll keyboardAvoid>
       <AuthCard title="Welcome back" subtitle="Sign in to manage your shoe cleaning orders">
         {error ? <InlineMessage message={error} tone="error" /> : null}
 
@@ -62,14 +63,14 @@ export default function LoginScreen() {
         </FormField>
 
         <Pressable onPress={() => router.push('/(auth)/forgot-password')} style={styles.forgotWrap}>
-          <Text style={styles.forgotLink}>Forgot password?</Text>
+          <Text style={[theme.typography.bodySm, styles.link, { color: theme.colors.primary }]}>Forgot password?</Text>
         </Pressable>
 
         <Button title="Sign in" onPress={handleLogin} loading={loading} fullWidth />
 
         <Pressable onPress={() => router.push('/(auth)/register')} style={styles.linkWrap}>
-          <Text style={styles.linkText}>
-            New customer? <Text style={styles.linkAccent}>Create account</Text>
+          <Text style={[theme.typography.bodySm, { color: theme.colors.textSecondary }]}>
+            New customer? <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Create account</Text>
           </Text>
         </Pressable>
       </AuthCard>
@@ -78,9 +79,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  forgotWrap: { alignSelf: 'flex-end', marginTop: -spacing.sm },
-  forgotLink: { ...typography.bodySm, color: colors.primary, fontWeight: '600' },
+  forgotWrap: { alignSelf: 'flex-end', marginTop: -8 },
+  link: { fontWeight: '600' },
   linkWrap: { alignItems: 'center' },
-  linkText: { ...typography.bodySm, color: colors.textSecondary },
-  linkAccent: { color: colors.primary, fontWeight: '600' },
 });

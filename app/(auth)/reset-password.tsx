@@ -11,9 +11,10 @@ import { InlineMessage } from '@/src/components/ui/InlineMessage';
 import { Input } from '@/src/components/ui/Input';
 import { PasswordInput } from '@/src/components/ui/PasswordInput';
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
-import { colors, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 export default function ResetPasswordScreen() {
+  const theme = useAppTheme();
   const params = useLocalSearchParams<{ email?: string; token?: string }>();
   const [email, setEmail] = useState(params.email ?? '');
   const [token, setToken] = useState(params.token ?? '');
@@ -124,7 +125,7 @@ export default function ResetPasswordScreen() {
         ) : null}
 
         <Pressable onPress={() => router.replace('/(auth)/login')} style={styles.backWrap}>
-          <Text style={styles.backText}>← Back to sign in</Text>
+          <Text style={[theme.typography.bodySm, { color: theme.colors.textSecondary }]}>← Back to sign in</Text>
         </Pressable>
       </AuthCard>
     </ScreenContainer>
@@ -133,5 +134,4 @@ export default function ResetPasswordScreen() {
 
 const styles = StyleSheet.create({
   backWrap: { alignItems: 'center' },
-  backText: { ...typography.bodySm, color: colors.textSecondary },
 });

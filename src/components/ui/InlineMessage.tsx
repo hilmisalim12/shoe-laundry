@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 type Props = {
   message: string;
@@ -8,19 +8,25 @@ type Props = {
 };
 
 export function InlineMessage({ message, tone = 'error' }: Props) {
+  const theme = useAppTheme();
+
   const palette = {
-    error: { bg: colors.dangerBg, text: colors.destructive, border: '#FECACA' },
-    success: { bg: colors.successBg, text: colors.successForeground, border: '#BBF7D0' },
-    info: { bg: colors.infoBg, text: colors.infoForeground, border: '#99F6E4' },
+    error: { bg: theme.colors.dangerBg, text: theme.colors.destructive, border: '#fecaca' },
+    success: { bg: theme.colors.successBg, text: theme.colors.successForeground, border: '#bbf7d0' },
+    info: {
+      bg: theme.colors.infoBg,
+      text: theme.colors.infoForeground,
+      border: theme.isCustomer ? theme.colors.primaryLight : '#99f6e4',
+    },
   }[tone];
 
   return (
     <View
-      style={[styles.box, { backgroundColor: palette.bg, borderColor: palette.border }]}
+      style={[styles.box, { backgroundColor: palette.bg, borderColor: palette.border, borderRadius: theme.radius.md }]}
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
     >
-      <Text style={[styles.text, { color: palette.text }]}>{message}</Text>
+      <Text style={[theme.typography.bodySm, styles.text, { color: palette.text }]}>{message}</Text>
     </View>
   );
 }
@@ -28,9 +34,8 @@ export function InlineMessage({ message, tone = 'error' }: Props) {
 const styles = StyleSheet.create({
   box: {
     borderWidth: 1,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
+    padding: 12,
+    marginBottom: 16,
   },
-  text: { ...typography.bodySm, fontWeight: '500' },
+  text: { fontWeight: '500' },
 });

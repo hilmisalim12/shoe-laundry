@@ -10,9 +10,10 @@ import { InlineMessage } from '@/src/components/ui/InlineMessage';
 import { Input } from '@/src/components/ui/Input';
 import { PasswordInput } from '@/src/components/ui/PasswordInput';
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
-import { colors, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
 
 export default function RegisterScreen() {
+  const theme = useAppTheme();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -69,8 +70,9 @@ export default function RegisterScreen() {
         <Button title="Create account" onPress={handleRegister} loading={loading} fullWidth />
 
         <Pressable onPress={() => router.back()} style={styles.linkWrap}>
-          <Text style={styles.linkText}>
-            Already have an account? <Text style={styles.linkAccent}>Sign in</Text>
+          <Text style={[theme.typography.bodySm, { color: theme.colors.textSecondary }]}>
+            Already have an account?{' '}
+            <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Sign in</Text>
           </Text>
         </Pressable>
       </AuthCard>
@@ -80,6 +82,4 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   linkWrap: { alignItems: 'center' },
-  linkText: { ...typography.bodySm, color: colors.textSecondary },
-  linkAccent: { color: colors.primary, fontWeight: '600' },
 });

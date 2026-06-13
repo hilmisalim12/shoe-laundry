@@ -12,9 +12,12 @@ import { EmptyState } from '@/src/components/ui/EmptyState';
 import { OrderTimeline } from '@/src/components/ui/OrderTimeline';
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
 import { ORDER_STATUS_LABELS, type Order } from '@/src/types';
-import { colors, spacing, typography } from '@/src/theme/tokens';
+import { useAppTheme } from '@/src/theme/AppThemeContext';
+import { customerColors } from '@/src/theme/customerTheme';
+import { spacing, typography } from '@/src/theme/tokens';
 
 export default function OrderDetailScreen() {
+  const theme = useAppTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
   const bottomPad = width >= 1024 ? 48 : 100;
@@ -39,7 +42,7 @@ export default function OrderDetailScreen() {
     return (
       <ScreenContainer scroll bottomPad={bottomPad}>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+          <ActivityIndicator color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading order...</Text>
         </View>
       </ScreenContainer>
@@ -170,10 +173,10 @@ const styles = StyleSheet.create({
   center: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   loadingText: { ...typography.bodySm },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  cashCard: { backgroundColor: colors.warningBg, marginBottom: spacing.lg },
-  cashTitle: { ...typography.label, color: colors.warning, marginBottom: spacing.sm },
-  paidCard: { backgroundColor: colors.successBg, marginBottom: spacing.lg },
-  paidTitle: { ...typography.label, color: colors.success, marginBottom: spacing.sm },
+  cashCard: { backgroundColor: customerColors.warningBg, marginBottom: spacing.lg },
+  cashTitle: { ...typography.label, color: customerColors.warning, marginBottom: spacing.sm },
+  paidCard: { backgroundColor: customerColors.successBg, marginBottom: spacing.lg },
+  paidTitle: { ...typography.label, color: customerColors.success, marginBottom: spacing.sm },
   sectionCard: { marginBottom: spacing.lg, width: '100%' },
   section: { ...typography.h3, marginBottom: spacing.md },
   detailRow: {
@@ -184,15 +187,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   detailStacked: { marginBottom: spacing.md, gap: 2 },
-  detailLabel: { ...typography.bodySm, color: colors.mutedForeground, flexShrink: 0 },
+  detailLabel: { ...typography.bodySm, color: customerColors.mutedForeground, flexShrink: 0 },
   detailValueInline: {
     ...typography.bodySm,
     fontWeight: '500',
     flex: 1,
     textAlign: 'right',
-    color: colors.foreground,
+    color: customerColors.foreground,
   },
-  detailValue: { ...typography.bodySm, fontWeight: '500', color: colors.foreground },
+  detailValue: { ...typography.bodySm, fontWeight: '500', color: customerColors.foreground },
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -210,6 +213,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    borderTopColor: customerColors.borderLight,
   },
 });

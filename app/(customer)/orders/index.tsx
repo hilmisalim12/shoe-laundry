@@ -45,7 +45,7 @@ export default function OrdersScreen() {
         setRefreshing(false);
       }}
     >
-      <CustomerPageHeader title="My orders" subtitle="Track status and payment" />
+      <CustomerPageHeader title="My orders" subtitle="Track status and payment for your cleans" />
       {error ? <InlineMessage message={error} tone="error" /> : null}
 
       {!orders.length ? (
