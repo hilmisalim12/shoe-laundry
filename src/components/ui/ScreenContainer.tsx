@@ -10,7 +10,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/src/theme/AppThemeContext';
-import { CUSTOMER_MAX_WIDTH } from '@/src/theme/customerTheme';
 
 type Props = ViewProps & {
   scroll?: boolean;
@@ -43,7 +42,7 @@ export function ScreenContainer({
       style={[
         styles.inner,
         {
-          maxWidth: theme.isCustomer ? CUSTOMER_MAX_WIDTH : maxWidth,
+          maxWidth: theme.isCustomer ? undefined : maxWidth,
           paddingTop: padTop,
           paddingBottom: padBottom,
           paddingHorizontal: horizontalPad,
@@ -59,7 +58,10 @@ export function ScreenContainer({
   const scrollContent = scroll ? (
     <ScrollView
       style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[
+        styles.scrollContent,
+        theme.isCustomer && styles.scrollContentCustomer,
+      ]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       refreshControl={
@@ -75,7 +77,13 @@ export function ScreenContainer({
   );
 
   const body = (
-    <View style={[styles.root, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[
+        styles.root,
+        theme.isCustomer && styles.rootCustomer,
+        { backgroundColor: theme.colors.background },
+      ]}
+    >
       {scroll ? scrollContent : inner}
     </View>
   );
@@ -96,8 +104,10 @@ export function ScreenContainer({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  root: { flex: 1, alignItems: 'center', minHeight: 0 },
-  scroll: { flex: 1, width: '100%' },
+  root: { flex: 1, alignItems: 'center', minHeight: 0, width: '100%', minWidth: 0 },
+  rootCustomer: { alignItems: 'stretch' },
+  scroll: { flex: 1, width: '100%', minWidth: 0 },
   scrollContent: { flexGrow: 1, alignItems: 'center' },
-  inner: { width: '100%', minHeight: 0 },
+  scrollContentCustomer: { alignItems: 'stretch', width: '100%' },
+  inner: { width: '100%', minWidth: 0, alignSelf: 'stretch' },
 });

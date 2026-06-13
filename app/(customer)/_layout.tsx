@@ -6,11 +6,29 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RequireAuth } from '@/src/components/AuthGuard';
 import { CustomerPhoneShell } from '@/src/components/customer/CustomerPhoneShell';
 import { CustomerThemeProvider } from '@/src/theme/AppThemeContext';
-import { customerColors } from '@/src/theme/customerTheme';
+import { CUSTOMER_MAX_WIDTH, customerColors } from '@/src/theme/customerTheme';
 
 export default function CustomerLayout() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = 64 + insets.bottom;
+
+  const tabBarStyle = {
+    borderTopColor: customerColors.borderLight,
+    borderTopWidth: 1,
+    backgroundColor: customerColors.white,
+    paddingTop: 4,
+    height: tabBarHeight,
+    ...(Platform.OS === 'web'
+      ? {
+          position: 'absolute' as const,
+          bottom: 0,
+          left: '50%',
+          width: '100%',
+          maxWidth: CUSTOMER_MAX_WIDTH,
+          transform: [{ translateX: '-50%' }],
+        }
+      : null),
+  };
 
   return (
     <RequireAuth role="customer">
@@ -23,13 +41,7 @@ export default function CustomerLayout() {
               tabBarInactiveTintColor: customerColors.textMuted,
               tabBarLabelPosition: 'below-icon',
               tabBarAllowFontScaling: false,
-              tabBarStyle: {
-                borderTopColor: customerColors.borderLight,
-                borderTopWidth: 1,
-                backgroundColor: customerColors.white,
-                paddingTop: 4,
-                height: tabBarHeight,
-              },
+              tabBarStyle,
               tabBarLabelStyle: styles.tabLabel,
             }}
           >
