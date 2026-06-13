@@ -49,20 +49,21 @@ export async function signUpWithEmail(
   });
   if (error) throw error;
   if (!data.user) throw new Error('Sign up failed');
-  const profile: Profile = {
-    id: data.user.id,
-    email,
-    name,
-    phone,
-    role: 'customer',
-  };
-  await supabase!.from('profiles').insert({
-    id: profile.id,
-    email,
-    name,
-    phone,
-    role: 'customer',
-  });
+
+  // Profile is created by DB trigger; fetch or upsert as fallback
+  let profile = await fetchSupabaseProfile(data.user.id);
+  if (!profile) {
+    const { error: profileError } = await supabase!.from('profiles').upsert({
+      id: data.user.id,
+      email,
+      name,
+      phone,
+      role: 'customer',
+    });
+    if (profileError) throw profileError;
+    profile = await fetchSupabaseProfile(data.user.id);
+  }
+  if (!profile) throw new Error('Profile setup failed. Please try signing in.');
   useUserStore.getState().setProfile(profile);
   return profile;
 }

@@ -29,13 +29,42 @@ Register a new customer account from the sign-up screen.
 
 ## Supabase setup (production)
 
-1. Create a Supabase project
-2. Run `supabase/schema.sql` in the SQL editor
-3. Copy `.env.example` to `.env` and add your keys
-4. Sign up an admin user, then run:
-   ```sql
-   update profiles set role = 'admin' where email = 'your-admin@email.com';
-   ```
+### 1. Create a Supabase project
+
+1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**
+2. Copy from **Settings → API**:
+   - **Project URL** → `EXPO_PUBLIC_SUPABASE_URL`
+   - **anon public key** → `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+3. Copy from **Settings → Database → Connection string (URI, Session pooler)**:
+   - → `SUPABASE_DB_URL`
+
+### 2. Configure locally
+
+```bash
+cp .env.example .env
+# Fill in EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_DB_URL
+npm run db:setup    # creates tables, RLS, seed services
+```
+
+### 3. Create admin user
+
+1. Start the app and **register** your admin email via Create account
+2. In Supabase **SQL Editor**, run:
+
+```sql
+update profiles set role = 'admin' where email = 'your@email.com';
+```
+
+### 4. Push to Vercel
+
+```bash
+npm run env:vercel   # pushes EXPO_PUBLIC_* from .env to Vercel
+npx vercel --prod    # redeploy with database connected
+```
+
+Or add the two `EXPO_PUBLIC_*` vars manually in [Vercel project settings](https://vercel.com) and redeploy.
+
+**Auth tip:** In Supabase → Authentication → Providers → Email, disable **Confirm email** for faster sign-up during testing.
 
 ## Features
 
