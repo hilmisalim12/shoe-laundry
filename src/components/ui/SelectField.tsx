@@ -12,16 +12,17 @@ type Props = {
   options: SelectOption[];
   onChange: (value: string) => void;
   placeholder?: string;
+  compact?: boolean;
 };
 
-export function SelectField({ label, value, options, onChange, placeholder = 'Select...' }: Props) {
+export function SelectField({ label, value, options, onChange, placeholder = 'Select...', compact }: Props) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
 
   return (
     <View style={styles.wrap}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <Pressable onPress={() => setOpen(true)} style={styles.trigger}>
+      <Pressable onPress={() => setOpen(true)} style={[styles.trigger, compact && styles.triggerCompact]}>
         <Text style={[styles.triggerText, !selected && styles.placeholder]} numberOfLines={1}>
           {selected?.label ?? placeholder}
         </Text>
@@ -75,6 +76,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  triggerCompact: {
+    minHeight: 38,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   triggerText: { ...typography.body, flex: 1, color: colors.text },
   placeholder: { color: colors.textMuted },

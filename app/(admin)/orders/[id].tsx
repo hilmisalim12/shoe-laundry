@@ -27,7 +27,8 @@ const STATUS_OPTIONS = ORDER_STATUSES.map((s) => ({
 export default function AdminOrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const isWide = width >= 768;
+  const stackInfo = width < 640;
   const admin = useUserStore((s) => s.profile);
   const [order, setOrder] = useState<Order | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -129,6 +130,7 @@ export default function AdminOrderDetailScreen() {
   return (
     <AdminScrollPage
       maxWidth={1100}
+      keyboardAvoid
       refreshing={refreshing}
       onRefresh={async () => {
         setRefreshing(true);
@@ -138,45 +140,52 @@ export default function AdminOrderDetailScreen() {
     >
       <AdminPageHeader
         title={`Order #${order.id.slice(-6).toUpperCase()}`}
-        subtitle={`${order.customer?.name ?? 'Customer'} · ${formatDateTime(order.created_at)} · ${formatCurrency(order.total)}`}
         showBack
-      />
-
-      <View style={styles.badges}>
-        <Badge label={ORDER_STATUS_LABELS[order.status]} tone="primary" />
-        <Badge
-          label={order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
-          tone={order.payment_status === 'paid' ? 'success' : 'warning'}
-        />
-      </View>
+      >
+        <View style={styles.metaBlock}>
+          <View style={styles.badges}>
+            <Badge label={ORDER_STATUS_LABELS[order.status]} tone="primary" />
+            <Badge
+              label={order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+              tone={order.payment_status === 'paid' ? 'success' : 'warning'}
+            />
+          </View>
+          <Text style={styles.metaLine}>{order.customer?.name ?? 'Customer'}</Text>
+          <Text style={styles.metaLine}>{formatDateTime(order.created_at)}</Text>
+          <Text style={styles.metaTotal}>{formatCurrency(order.total)}</Text>
+        </View>
+      </AdminPageHeader>
 
       {error ? <InlineMessage message={error} tone="error" /> : null}
       {success ? <InlineMessage message={success} tone="success" /> : null}
 
-      <View style={[styles.grid, wide && styles.gridWide]}>
-        <Card style={styles.panel}>
+      <View style={[styles.grid, isWide && styles.gridWide]}>
+        <Card style={isWide ? styles.columnPanel : styles.stackItem}>
           <Text style={styles.panelTitle}>Customer & order</Text>
-          <InfoRow label="Name" value={order.customer?.name ?? 'Unknown'} />
-          <InfoRow label="Email" value={order.customer?.email ?? '-'} />
-          <InfoRow label="Phone" value={order.customer?.phone ?? '-'} />
+          <InfoRow stacked={stackInfo} label="Name" value={order.customer?.name ?? 'Unknown'} />
+          <InfoRow stacked={stackInfo} label="Email" value={order.customer?.email ?? '-'} />
+          <InfoRow stacked={stackInfo} label="Phone" value={order.customer?.phone ?? '-'} />
           <InfoRow
+            stacked={stackInfo}
             label="Logistics"
             value={order.logistics_type === 'pickup_delivery' ? 'Pickup & delivery' : 'Drop-off'}
           />
-          <InfoRow label="Scheduled" value={formatDateTime(order.scheduled_at)} />
-          {order.notes ? <InfoRow label="Notes" value={order.notes} /> : null}
+          <InfoRow stacked={stackInfo} label="Scheduled" value={formatDateTime(order.scheduled_at)} />
+          {order.notes ? <InfoRow stacked={stackInfo} label="Notes" value={order.notes} /> : null}
           <View style={styles.divider} />
           <Text style={styles.subheading}>Items</Text>
           {order.order_items?.map((item) => (
-            <Text key={item.id} style={typography.bodySm}>
-              {item.quantity}× {item.shoe_type} — {item.service?.name ?? 'Service'} (
-              {formatCurrency(item.unit_price * item.quantity)})
-            </Text>
+            <View key={item.id} style={styles.itemRow}>
+              <Text style={styles.itemTitle}>
+                {item.quantity}× {item.shoe_type} — {item.service?.name ?? 'Service'}
+              </Text>
+              <Text style={styles.itemPrice}>{formatCurrency(item.unit_price * item.quantity)}</Text>
+            </View>
           ))}
         </Card>
 
-        <View style={styles.actionColumn}>
-          <Card style={styles.panel}>
+        <View style={[styles.actionColumn, isWide ? styles.actionColumnWide : styles.stackItem]}>
+          <Card style={styles.actionCard}>
             <Text style={styles.panelTitle}>Cash payment</Text>
             {order.payment_status === 'paid' ? (
               <Text style={typography.bodySm}>
@@ -185,7 +194,7 @@ export default function AdminOrderDetailScreen() {
                 {order.payment_note ? ` · ${order.payment_note}` : ''}
               </Text>
             ) : (
-              <>
+              <View style={styles.formBlock}>
                 <Text style={typography.bodySm}>Amount due: {formatCurrency(order.total)}</Text>
                 <FormField label="Amount received">
                   <Input value={amount} onChangeText={setAmount} keyboardType="number-pad" />
@@ -199,28 +208,30 @@ export default function AdminOrderDetailScreen() {
                   loading={paymentLoading}
                   fullWidth
                 />
-              </>
+              </View>
             )}
           </Card>
 
-          <Card style={styles.panel}>
+          <Card style={styles.actionCard}>
             <Text style={styles.panelTitle}>Update status</Text>
-            <SelectField
-              label="Order status"
-              value={status}
-              options={STATUS_OPTIONS}
-              onChange={(v) => setStatus(v as OrderStatus)}
-            />
-            <FormField label="Note (optional)" style={{ marginTop: spacing.md }}>
-              <Input value={statusNote} onChangeText={setStatusNote} placeholder="Optional update note" multiline />
-            </FormField>
-            <Button
-              title="Save status"
-              variant="secondary"
-              onPress={handleStatusUpdate}
-              loading={statusLoading}
-              fullWidth
-            />
+            <View style={styles.formBlock}>
+              <SelectField
+                label="Order status"
+                value={status}
+                options={STATUS_OPTIONS}
+                onChange={(v) => setStatus(v as OrderStatus)}
+              />
+              <FormField label="Note (optional)">
+                <Input value={statusNote} onChangeText={setStatusNote} placeholder="Optional update note" multiline />
+              </FormField>
+              <Button
+                title="Save status"
+                variant="secondary"
+                onPress={handleStatusUpdate}
+                loading={statusLoading}
+                fullWidth
+              />
+            </View>
           </Card>
         </View>
       </View>
@@ -233,7 +244,24 @@ export default function AdminOrderDetailScreen() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  stacked,
+}: {
+  label: string;
+  value: string;
+  stacked?: boolean;
+}) {
+  if (stacked) {
+    return (
+      <View style={styles.infoRowStacked}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValueStacked}>{value}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -244,11 +272,18 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxxl, gap: spacing.md },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  grid: { gap: spacing.lg },
+  metaBlock: { gap: spacing.xs },
+  metaLine: { ...typography.bodySm, color: colors.mutedForeground },
+  metaTotal: { ...typography.label, color: colors.foreground, marginTop: spacing.xs },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
+  grid: { gap: spacing.lg, width: '100%' },
   gridWide: { flexDirection: 'row', alignItems: 'flex-start' },
-  panel: { flex: 1, minWidth: 280 },
-  actionColumn: { flex: 1, gap: spacing.lg, minWidth: 280 },
+  columnPanel: { flex: 1, minWidth: 0, alignSelf: 'stretch' },
+  stackItem: { width: '100%', flex: 0, flexGrow: 0, flexShrink: 0 },
+  actionColumn: { gap: spacing.lg, width: '100%' },
+  actionColumnWide: { flex: 1, minWidth: 0, alignSelf: 'stretch' },
+  actionCard: { width: '100%', flexGrow: 0, flexShrink: 0, alignSelf: 'stretch' },
+  formBlock: { gap: spacing.md },
   panelTitle: {
     ...typography.label,
     marginBottom: spacing.md,
@@ -261,10 +296,36 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: spacing.md,
+    alignItems: 'flex-start',
+    gap: spacing.lg,
     marginBottom: spacing.sm,
   },
-  infoLabel: { ...typography.bodySm, flex: 1 },
-  infoValue: { ...typography.bodySm, fontWeight: '500', flex: 1.5, textAlign: 'right', color: colors.foreground },
-  timelinePanel: { marginTop: spacing.lg },
+  infoRowStacked: {
+    marginBottom: spacing.md,
+    gap: 2,
+  },
+  infoLabel: { ...typography.bodySm, color: colors.mutedForeground, flexShrink: 0 },
+  infoValue: {
+    ...typography.bodySm,
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'right',
+    color: colors.foreground,
+  },
+  infoValueStacked: {
+    ...typography.bodySm,
+    fontWeight: '500',
+    color: colors.foreground,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  itemTitle: { ...typography.bodySm, flex: 1, minWidth: 160 },
+  itemPrice: { ...typography.bodySm, fontWeight: '600', flexShrink: 0 },
+  timelinePanel: { marginTop: spacing.lg, width: '100%' },
 });

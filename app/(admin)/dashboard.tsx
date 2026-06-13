@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
 import { getAllOrders, getDashboardStats } from '@/src/lib/api';
@@ -18,9 +18,11 @@ import { EmptyState } from '@/src/components/ui/EmptyState';
 import { FilterChips } from '@/src/components/ui/FilterChips';
 import { StatCard } from '@/src/components/ui/StatCard';
 import { ORDER_STATUS_LABELS, type DashboardStats, type Order } from '@/src/types';
-import { colors, spacing, typography } from '@/src/theme/tokens';
+import { spacing, typography } from '@/src/theme/tokens';
 
 export default function AdminDashboard() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 1024;
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('all');
@@ -49,7 +51,11 @@ export default function AdminDashboard() {
         setRefreshing(false);
       }}
     >
-      <AdminPageHeader title="Dashboard" subtitle="Overview of today's business activity" />
+      <AdminPageHeader
+        title="Dashboard"
+        subtitle="Overview of today's business activity"
+        showSignOut={isMobile}
+      />
       <View style={styles.stats}>
         <StatCard label="Orders today" value={stats?.ordersToday ?? 0} />
         <StatCard label="Cash collected today" value={formatCurrency(stats?.cashCollectedToday ?? 0)} />

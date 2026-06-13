@@ -85,17 +85,20 @@ export default function AdminOrdersScreen() {
         </View>
       ) : null}
 
-      <Text style={styles.filterLabel}>Payment</Text>
-      <FilterChips options={PAYMENT_FILTERS} value={paymentFilter} onChange={setPaymentFilter} />
-
-      <View style={styles.statusRow}>
-        <SelectField
-          label="Order status"
-          value={statusFilter}
-          options={STATUS_OPTIONS}
-          onChange={(v) => setStatusFilter(v as OrderStatus | 'all')}
-          placeholder="All statuses"
-        />
+      <View style={styles.filtersRow}>
+        <Text style={styles.inlineLabel}>Payment</Text>
+        <FilterChips options={PAYMENT_FILTERS} value={paymentFilter} onChange={setPaymentFilter} wrap={false} />
+        <View style={styles.filterDivider} />
+        <Text style={styles.inlineLabel}>Status</Text>
+        <View style={styles.statusSelect}>
+          <SelectField
+            compact
+            value={statusFilter}
+            options={STATUS_OPTIONS}
+            onChange={(v) => setStatusFilter(v as OrderStatus | 'all')}
+            placeholder="All statuses"
+          />
+        </View>
       </View>
 
       <View style={styles.list}>
@@ -152,9 +155,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   customerBannerText: { ...typography.bodySm, flex: 1 },
-  filterLabel: { ...typography.label, marginBottom: spacing.sm, marginTop: spacing.md },
-  statusRow: { marginTop: spacing.lg, maxWidth: 320 },
-  list: { marginTop: spacing.xl, gap: spacing.md },
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  inlineLabel: {
+    ...typography.label,
+    fontSize: 13,
+    color: colors.mutedForeground,
+    flexShrink: 0,
+  },
+  filterDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.xs,
+    flexShrink: 0,
+  },
+  statusSelect: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 140,
+    maxWidth: 220,
+  },
+  list: { marginTop: spacing.lg, gap: spacing.md },
   card: { marginBottom: 0 },
   top: {
     flexDirection: 'row',

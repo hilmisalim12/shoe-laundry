@@ -17,7 +17,21 @@ npm install
 npm run web
 ```
 
-Open the app in your browser. No Supabase setup required for local demo.
+Open the app in your browser at **http://localhost:8081**. No Supabase setup required for local demo.
+
+### Development workflow (local first)
+
+1. **Develop locally** — `npm run web` and test in the browser
+2. **Fix & verify** — iterate until everything looks and works right
+3. **Deploy when ready** — only then run `npx vercel --prod` (or push to GitHub if Vercel auto-deploy is connected)
+
+Other useful commands:
+
+```bash
+npm run build:web    # production build test (catches SSR/build errors)
+npm run preview:web    # serve dist/ locally before deploying
+```
+
 
 ### Demo accounts (local mode)
 

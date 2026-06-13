@@ -69,16 +69,21 @@ export default function AdminCustomersScreen() {
           {
             key: 'name',
             label: 'Customer',
-            flex: 1.4,
-            minWidth: 180,
+            flex: 2,
             render: (row) => (
               <View style={styles.nameCell}>
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{row.name.charAt(0).toUpperCase()}</Text>
                 </View>
                 <View style={styles.nameText}>
-                  <Text style={styles.name}>{row.name}</Text>
-                  {row.phone ? <Text style={styles.phoneHint}>{row.phone}</Text> : null}
+                  <Text style={styles.name} numberOfLines={1}>
+                    {row.name}
+                  </Text>
+                  {row.phone ? (
+                    <Text style={styles.phoneHint} numberOfLines={1}>
+                      {row.phone}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             ),
@@ -86,8 +91,7 @@ export default function AdminCustomersScreen() {
           {
             key: 'email',
             label: 'Email',
-            flex: 1.8,
-            minWidth: 220,
+            flex: 3,
             render: (row) => (
               <Text style={styles.email} numberOfLines={1}>
                 {row.email ?? '—'}
@@ -97,9 +101,8 @@ export default function AdminCustomersScreen() {
           {
             key: 'orders',
             label: 'Orders',
-            flex: 0.7,
-            minWidth: 100,
-            align: 'right',
+            width: 100,
+            align: 'center',
             render: (row) => (
               <Badge
                 label={String(row.orderCount)}
@@ -116,7 +119,7 @@ export default function AdminCustomersScreen() {
 }
 
 const styles = StyleSheet.create({
-  nameCell: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  nameCell: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, width: '100%' },
   avatar: {
     width: 36,
     height: 36,
@@ -129,6 +132,6 @@ const styles = StyleSheet.create({
   nameText: { flex: 1, minWidth: 0 },
   name: { ...typography.label, color: colors.foreground },
   phoneHint: { ...typography.caption, marginTop: 2 },
-  email: { ...typography.bodySm, color: colors.foreground },
+  email: { ...typography.bodySm, color: colors.foreground, width: '100%' },
   hint: { ...typography.caption, marginTop: spacing.sm },
 });

@@ -1,4 +1,5 @@
 import { ScreenContainer } from '@/src/components/ui/ScreenContainer';
+import { useWindowDimensions } from 'react-native';
 
 type Props = {
   children: React.ReactNode;
@@ -16,11 +17,14 @@ export function AdminScrollPage({
   onRefresh,
   keyboardAvoid,
 }: Props) {
+  const { width } = useWindowDimensions();
+  const bottomPad = width >= 1024 ? 48 : 96;
+
   return (
     <ScreenContainer
       scroll
       maxWidth={maxWidth}
-      bottomPad={48}
+      bottomPad={bottomPad}
       refreshing={refreshing}
       onRefresh={onRefresh}
       keyboardAvoid={keyboardAvoid}

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { Input } from '@/src/components/ui/Input';
 import { colors, radius, shadows, spacing, typography } from '@/src/theme/tokens';
@@ -7,8 +7,10 @@ import { colors, radius, shadows, spacing, typography } from '@/src/theme/tokens
 export type DataTableColumn<T> = {
   key: string;
   label: string;
+  /** Flex grow ratio (default 1). Ignored when `width` is set. */
   flex?: number;
-  minWidth?: number;
+  /** Fixed column width in px — use for narrow columns like actions/counts. */
+  width?: number;
   align?: 'left' | 'right' | 'center';
   render: (row: T) => React.ReactNode;
 };
@@ -27,11 +29,22 @@ type Props<T> = {
 };
 
 function cellStyle(col: DataTableColumn<unknown>) {
+  const alignItems =
+    col.align === 'right' ? ('flex-end' as const) : col.align === 'center' ? ('center' as const) : ('flex-start' as const);
+
+  if (col.width != null) {
+    return {
+      width: col.width,
+      flexShrink: 0,
+      flexGrow: 0,
+      alignItems,
+    };
+  }
+
   return {
     flex: col.flex ?? 1,
-    minWidth: col.minWidth ?? 120,
-    alignItems:
-      col.align === 'right' ? ('flex-end' as const) : col.align === 'center' ? ('center' as const) : ('flex-start' as const),
+    minWidth: 0,
+    alignItems,
   };
 }
 
@@ -47,8 +60,68 @@ export function DataTable<T>({
   searchPlaceholder = 'Search…',
   onClearSearch,
 }: Props<T>) {
-  const tableMinWidth = columns.reduce((sum, col) => sum + (col.minWidth ?? 120), 0);
+  const { width: windowWidth } = useWindowDimensions();
   const showSearch = onSearchChange !== undefined;
+  const actionWidth = onRowPress ? 44 : 0;
+  const useHorizontalScroll = windowWidth < 720;
+
+  const tableBody = (
+    <View style={[styles.table, useHorizontalScroll && styles.tableScrollMin]}>
+      <View style={styles.headerRow}>
+        {columns.map((col) => (
+          <View key={col.key} style={[styles.headerCell, cellStyle(col)]}>
+            <Text style={[styles.headerLabel, col.align === 'right' && styles.headerLabelRight]}>
+              {col.label}
+            </Text>
+          </View>
+        ))}
+        {onRowPress ? <View style={[styles.actionCell, { width: actionWidth }]} /> : null}
+      </View>
+
+      {!data.length ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="people-outline" size={32} color={colors.mutedForeground} />
+          <Text style={styles.emptyTitle}>{emptyTitle}</Text>
+          {emptyDescription ? <Text style={styles.emptyDescription}>{emptyDescription}</Text> : null}
+        </View>
+      ) : (
+        data.map((row, index) => {
+          const rowContent = (
+            <View style={[styles.dataRow, index % 2 === 1 && styles.dataRowAlt]}>
+              {columns.map((col) => (
+                <View key={col.key} style={[styles.dataCell, cellStyle(col)]}>
+                  {col.render(row)}
+                </View>
+              ))}
+              {onRowPress ? (
+                <View style={[styles.actionCell, { width: actionWidth }]}>
+                  <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+                </View>
+              ) : null}
+            </View>
+          );
+
+          if (!onRowPress) {
+            return <View key={keyExtractor(row)}>{rowContent}</View>;
+          }
+
+          return (
+            <Pressable
+              key={keyExtractor(row)}
+              onPress={() => onRowPress(row)}
+              style={({ pressed, hovered }) => [
+                styles.rowPressable,
+                (pressed || hovered) && styles.rowHovered,
+              ]}
+              accessibilityRole="button"
+            >
+              {rowContent}
+            </Pressable>
+          );
+        })
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.wrap}>
@@ -76,78 +149,29 @@ export function DataTable<T>({
       ) : null}
 
       <View style={styles.tableCard}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={[styles.table, { minWidth: Math.max(tableMinWidth, 640) }]}>
-            <View style={styles.headerRow}>
-              {columns.map((col) => (
-                <View key={col.key} style={[styles.headerCell, cellStyle(col)]}>
-                  <Text style={styles.headerLabel}>{col.label}</Text>
-                </View>
-              ))}
-              {onRowPress ? <View style={styles.actionHeaderCell} /> : null}
-            </View>
-
-            {!data.length ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="people-outline" size={32} color={colors.mutedForeground} />
-                <Text style={styles.emptyTitle}>{emptyTitle}</Text>
-                {emptyDescription ? <Text style={styles.emptyDescription}>{emptyDescription}</Text> : null}
-              </View>
-            ) : (
-              data.map((row, index) => {
-                const rowContent = (
-                  <View style={[styles.dataRow, index % 2 === 1 && styles.dataRowAlt]}>
-                    {columns.map((col) => (
-                      <View key={col.key} style={[styles.dataCell, cellStyle(col)]}>
-                        {col.render(row)}
-                      </View>
-                    ))}
-                    {onRowPress ? (
-                      <View style={styles.actionCell}>
-                        <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
-                      </View>
-                    ) : null}
-                  </View>
-                );
-
-                if (!onRowPress) {
-                  return <View key={keyExtractor(row)}>{rowContent}</View>;
-                }
-
-                return (
-                  <Pressable
-                    key={keyExtractor(row)}
-                    onPress={() => onRowPress(row)}
-                    style={({ pressed, hovered }) => [
-                      styles.rowPressable,
-                      (pressed || hovered) && styles.rowHovered,
-                    ]}
-                    accessibilityRole="button"
-                  >
-                    {rowContent}
-                  </Pressable>
-                );
-              })
-            )}
-          </View>
-        </ScrollView>
+        {useHorizontalScroll ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {tableBody}
+          </ScrollView>
+        ) : (
+          tableBody
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: spacing.md },
+  wrap: { gap: spacing.md, width: '100%' },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    flexWrap: 'wrap',
+    width: '100%',
   },
   searchWrap: {
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 280,
+    flex: 1,
+    minWidth: 0,
     position: 'relative',
     justifyContent: 'center',
   },
@@ -167,10 +191,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.background,
+    flexShrink: 0,
   },
   clearText: { ...typography.bodySm, fontWeight: '600', color: colors.foreground },
-  resultCount: { ...typography.caption, flexShrink: 0 },
+  resultCount: { ...typography.caption, flexShrink: 0, marginLeft: 'auto' },
   tableCard: {
+    width: '100%',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,
@@ -178,19 +204,25 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...shadows.sm,
   },
-  table: { width: '100%' },
+  table: {
+    width: '100%',
+  },
+  tableScrollMin: {
+    minWidth: 640,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     backgroundColor: colors.muted,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   headerCell: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    justifyContent: 'center',
   },
   headerLabel: {
     fontSize: 11,
@@ -199,29 +231,34 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.mutedForeground,
   },
-  actionHeaderCell: { width: 36 },
+  headerLabelRight: {
+    textAlign: 'right',
+    width: '100%',
+  },
   dataRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
   },
   dataRowAlt: { backgroundColor: colors.borderLight },
-  rowPressable: { cursor: 'pointer' as unknown as undefined },
+  rowPressable: { width: '100%', cursor: 'pointer' as unknown as undefined },
   rowHovered: { backgroundColor: colors.primaryLight },
   dataCell: {
     paddingHorizontal: spacing.sm,
     justifyContent: 'center',
   },
   actionCell: {
-    width: 36,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   emptyState: {
     alignItems: 'center',
+    width: '100%',
     paddingVertical: spacing.xxxl,
     paddingHorizontal: spacing.xl,
     gap: spacing.sm,
