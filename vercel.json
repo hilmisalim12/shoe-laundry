@@ -4,5 +4,11 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/orders/:id",
+      "destination": "/orders/[id]"
+    }
+  ]
 }
