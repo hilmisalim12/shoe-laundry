@@ -25,16 +25,25 @@ function loadEnv() {
   return vars;
 }
 
-const KEYS = ['EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPABASE_ANON_KEY'];
+const KEYS = [
+  'EXPO_PUBLIC_SUPABASE_URL',
+  'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+];
 
 const env = loadEnv();
-const missing = KEYS.filter((k) => !env[k] || env[k].includes('your-'));
-if (missing.length) {
-  console.error(`Missing in .env: ${missing.join(', ')}`);
+const keysToPush = KEYS.filter((k) => env[k] && !env[k].includes('your-'));
+const missing = !env.EXPO_PUBLIC_SUPABASE_URL || env.EXPO_PUBLIC_SUPABASE_URL.includes('your-project');
+if (missing) {
+  console.error('Missing EXPO_PUBLIC_SUPABASE_URL in .env');
+  process.exit(1);
+}
+if (!keysToPush.some((k) => k.includes('PUBLISHABLE') || k.includes('ANON'))) {
+  console.error('Missing EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or legacy ANON_KEY) in .env');
   process.exit(1);
 }
 
-for (const key of KEYS) {
+for (const key of keysToPush) {
   console.log(`Setting ${key} on Vercel (production)…`);
   execSync(`npx vercel env add ${key} production`, {
     cwd: root,

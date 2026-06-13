@@ -1,11 +1,18 @@
-import { isSupabaseConfigured, supabase } from '@/src/lib/supabase';
+import { getSupabase, isSupabaseConfigured } from '@/src/lib/supabase';
 import * as local from '@/src/lib/localDb';
 import { useUserStore } from '@/src/stores/userStore';
 import type { Profile } from '@/src/types';
 
+function sb() {
+  const client = getSupabase();
+  if (!client) throw new Error('Supabase is not available');
+  return client;
+}
+
 async function fetchSupabaseProfile(userId: string): Promise<Profile | null> {
-  if (!supabase) return null;
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  const client = getSupabase();
+  if (!client) return null;
+  const { data, error } = await client.from('profiles').select('*').eq('id', userId).single();
   if (error || !data) return null;
   return {
     id: data.id,
@@ -23,7 +30,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
     useUserStore.getState().setProfile(profile);
     return profile;
   }
-  const { data, error } = await supabase!.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb().auth.signInWithPassword({ email, password });
   if (error) throw error;
   const profile = await fetchSupabaseProfile(data.user.id);
   if (!profile) throw new Error('Profile not found');
@@ -42,7 +49,7 @@ export async function signUpWithEmail(
     useUserStore.getState().setProfile(profile);
     return profile;
   }
-  const { data, error } = await supabase!.auth.signUp({
+  const { data, error } = await sb().auth.signUp({
     email,
     password,
     options: { data: { name, phone } },
@@ -50,10 +57,9 @@ export async function signUpWithEmail(
   if (error) throw error;
   if (!data.user) throw new Error('Sign up failed');
 
-  // Profile is created by DB trigger; fetch or upsert as fallback
   let profile = await fetchSupabaseProfile(data.user.id);
   if (!profile) {
-    const { error: profileError } = await supabase!.from('profiles').upsert({
+    const { error: profileError } = await sb().from('profiles').upsert({
       id: data.user.id,
       email,
       name,
@@ -69,17 +75,18 @@ export async function signUpWithEmail(
 }
 
 export async function signOut() {
-  if (supabase) await supabase.auth.signOut();
+  const client = getSupabase();
+  if (client) await client.auth.signOut();
   useUserStore.getState().signOut();
 }
 
 export async function restoreSession(): Promise<Profile | null> {
   if (!isSupabaseConfigured) {
-    const profile = useUserStore.getState().profile;
-    return profile;
+    return useUserStore.getState().profile;
   }
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
+  const client = getSupabase();
+  if (!client) return null;
+  const { data } = await client.auth.getSession();
   if (!data.session) return null;
   const profile = await fetchSupabaseProfile(data.session.user.id);
   if (profile) useUserStore.getState().setProfile(profile);
@@ -95,7 +102,7 @@ export async function updateProfile(input: { name: string; phone?: string }) {
     useUserStore.getState().setProfile(updated);
     return updated;
   }
-  const { error } = await supabase!
+  const { error } = await sb()
     .from('profiles')
     .update({ name: input.name, phone: input.phone })
     .eq('id', current.id);
@@ -116,7 +123,7 @@ export async function requestPasswordReset(email: string): Promise<{ demoToken?:
 
   const redirectTo =
     typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined;
-  const { error } = await supabase!.auth.resetPasswordForEmail(trimmed, { redirectTo });
+  const { error } = await sb().auth.resetPasswordForEmail(trimmed, { redirectTo });
   if (error) throw new Error(error.message);
   return { email: trimmed };
 }
@@ -135,12 +142,13 @@ export async function resetPasswordWithToken(
     return;
   }
 
-  const { error } = await supabase!.auth.updateUser({ password: newPassword });
+  const { error } = await sb().auth.updateUser({ password: newPassword });
   if (error) throw new Error(error.message);
 }
 
 export async function hasRecoverySession(): Promise<boolean> {
-  if (!isSupabaseConfigured || !supabase) return false;
-  const { data } = await supabase.auth.getSession();
+  const client = getSupabase();
+  if (!isSupabaseConfigured || !client) return false;
+  const { data } = await client.auth.getSession();
   return !!data.session;
 }
