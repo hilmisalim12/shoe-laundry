@@ -1,16 +1,16 @@
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, typography } from '@/src/theme/tokens';
+import { Input } from '@/src/components/ui/Input';
+import { colors, radius, shadows, spacing, typography } from '@/src/theme/tokens';
 
 export type DataTableColumn<T> = {
   key: string;
   label: string;
   flex?: number;
   minWidth?: number;
+  align?: 'left' | 'right' | 'center';
   render: (row: T) => React.ReactNode;
-  filterValue: string;
-  onFilterChange: (value: string) => void;
-  filterPlaceholder?: string;
 };
 
 type Props<T> = {
@@ -18,116 +18,214 @@ type Props<T> = {
   data: T[];
   keyExtractor: (row: T) => string;
   emptyTitle?: string;
+  emptyDescription?: string;
   onRowPress?: (row: T) => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+  onClearSearch?: () => void;
 };
 
-export function DataTable<T>({ columns, data, keyExtractor, emptyTitle = 'No results', onRowPress }: Props<T>) {
+function cellStyle(col: DataTableColumn<unknown>) {
+  return {
+    flex: col.flex ?? 1,
+    minWidth: col.minWidth ?? 120,
+    alignItems:
+      col.align === 'right' ? ('flex-end' as const) : col.align === 'center' ? ('center' as const) : ('flex-start' as const),
+  };
+}
+
+export function DataTable<T>({
+  columns,
+  data,
+  keyExtractor,
+  emptyTitle = 'No results',
+  emptyDescription,
+  onRowPress,
+  searchValue,
+  onSearchChange,
+  searchPlaceholder = 'Search…',
+  onClearSearch,
+}: Props<T>) {
+  const tableMinWidth = columns.reduce((sum, col) => sum + (col.minWidth ?? 120), 0);
+  const showSearch = onSearchChange !== undefined;
+
   return (
-    <View style={styles.tableWrap}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.table}>
-          <View style={styles.headerRow}>
-            {columns.map((col) => (
-              <View
-                key={col.key}
-                style={[styles.cell, { flex: col.flex ?? 1, minWidth: col.minWidth ?? 140 }]}
-              >
-                <Text style={styles.headerLabel}>{col.label}</Text>
-                <View style={styles.filterBox}>
-                  <Text style={styles.filterIcon}>⌕</Text>
-                  <TextInput
-                    value={col.filterValue}
-                    onChangeText={col.onFilterChange}
-                    placeholder={col.filterPlaceholder ?? `Filter ${col.label.toLowerCase()}...`}
-                    placeholderTextColor={colors.textMuted}
-                    style={styles.filterInput}
-                  />
-                </View>
-              </View>
-            ))}
+    <View style={styles.wrap}>
+      {showSearch ? (
+        <View style={styles.toolbar}>
+          <View style={styles.searchWrap}>
+            <Ionicons name="search-outline" size={18} color={colors.mutedForeground} style={styles.searchIcon} />
+            <Input
+              value={searchValue ?? ''}
+              onChangeText={onSearchChange}
+              placeholder={searchPlaceholder}
+              style={styles.searchInput}
+              accessibilityLabel={searchPlaceholder}
+            />
           </View>
-
-          {!data.length ? (
-            <View style={styles.emptyRow}>
-              <Text style={typography.bodySm}>{emptyTitle}</Text>
-            </View>
-          ) : (
-            data.map((row) => {
-              const cells = (
-                <View style={styles.dataRow}>
-                  {columns.map((col) => (
-                    <View
-                      key={col.key}
-                      style={[styles.cell, styles.dataCell, { flex: col.flex ?? 1, minWidth: col.minWidth ?? 140 }]}
-                    >
-                      {col.render(row)}
-                    </View>
-                  ))}
-                </View>
-              );
-
-              if (!onRowPress) return <View key={keyExtractor(row)}>{cells}</View>;
-
-              return (
-                <Pressable
-                  key={keyExtractor(row)}
-                  onPress={() => onRowPress(row)}
-                  style={({ pressed }) => [pressed && styles.rowPressed]}
-                >
-                  {cells}
-                </Pressable>
-              );
-            })
-          )}
+          {searchValue?.trim() && onClearSearch ? (
+            <Pressable onPress={onClearSearch} style={styles.clearBtn} accessibilityRole="button">
+              <Text style={styles.clearText}>Clear</Text>
+            </Pressable>
+          ) : null}
+          <Text style={styles.resultCount}>
+            {data.length} {data.length === 1 ? 'result' : 'results'}
+          </Text>
         </View>
-      </ScrollView>
-      <Text style={styles.count}>{data.length} row(s)</Text>
+      ) : null}
+
+      <View style={styles.tableCard}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={[styles.table, { minWidth: Math.max(tableMinWidth, 640) }]}>
+            <View style={styles.headerRow}>
+              {columns.map((col) => (
+                <View key={col.key} style={[styles.headerCell, cellStyle(col)]}>
+                  <Text style={styles.headerLabel}>{col.label}</Text>
+                </View>
+              ))}
+              {onRowPress ? <View style={styles.actionHeaderCell} /> : null}
+            </View>
+
+            {!data.length ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="people-outline" size={32} color={colors.mutedForeground} />
+                <Text style={styles.emptyTitle}>{emptyTitle}</Text>
+                {emptyDescription ? <Text style={styles.emptyDescription}>{emptyDescription}</Text> : null}
+              </View>
+            ) : (
+              data.map((row, index) => {
+                const rowContent = (
+                  <View style={[styles.dataRow, index % 2 === 1 && styles.dataRowAlt]}>
+                    {columns.map((col) => (
+                      <View key={col.key} style={[styles.dataCell, cellStyle(col)]}>
+                        {col.render(row)}
+                      </View>
+                    ))}
+                    {onRowPress ? (
+                      <View style={styles.actionCell}>
+                        <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+                      </View>
+                    ) : null}
+                  </View>
+                );
+
+                if (!onRowPress) {
+                  return <View key={keyExtractor(row)}>{rowContent}</View>;
+                }
+
+                return (
+                  <Pressable
+                    key={keyExtractor(row)}
+                    onPress={() => onRowPress(row)}
+                    style={({ pressed, hovered }) => [
+                      styles.rowPressable,
+                      (pressed || hovered) && styles.rowHovered,
+                    ]}
+                    accessibilityRole="button"
+                  >
+                    {rowContent}
+                  </Pressable>
+                );
+              })
+            )}
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tableWrap: {
+  wrap: { gap: spacing.md },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    flexWrap: 'wrap',
+  },
+  searchWrap: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 280,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: spacing.md,
+    zIndex: 1,
+  },
+  searchInput: {
+    paddingLeft: spacing.xl + spacing.sm,
+    minHeight: 40,
+  },
+  clearBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
-    backgroundColor: colors.white,
-    overflow: 'hidden',
+    backgroundColor: colors.background,
   },
-  table: { minWidth: 720 },
+  clearText: { ...typography.bodySm, fontWeight: '600', color: colors.foreground },
+  resultCount: { ...typography.caption, flexShrink: 0 },
+  tableCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.card,
+    overflow: 'hidden',
+    ...shadows.sm,
+  },
+  table: { width: '100%' },
   headerRow: {
     flexDirection: 'row',
-    backgroundColor: colors.borderLight,
+    alignItems: 'center',
+    backgroundColor: colors.muted,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
+  headerCell: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  headerLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.mutedForeground,
+  },
+  actionHeaderCell: { width: 36 },
   dataRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
   },
-  rowPressed: { backgroundColor: colors.primaryLight },
-  cell: { padding: spacing.md },
-  dataCell: { justifyContent: 'center' },
-  headerLabel: { ...typography.label, marginBottom: spacing.sm },
-  filterBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    backgroundColor: colors.white,
+  dataRowAlt: { backgroundColor: colors.borderLight },
+  rowPressable: { cursor: 'pointer' as unknown as undefined },
+  rowHovered: { backgroundColor: colors.primaryLight },
+  dataCell: {
     paddingHorizontal: spacing.sm,
-    minHeight: 36,
+    justifyContent: 'center',
   },
-  filterIcon: { color: colors.textMuted, marginRight: 4, fontSize: 14 },
-  filterInput: {
-    flex: 1,
-    ...typography.bodySm,
-    color: colors.text,
-    paddingVertical: 6,
-    minWidth: 80,
+  actionCell: {
+    width: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  emptyRow: { padding: spacing.xxxl, alignItems: 'center' },
-  count: { ...typography.caption, padding: spacing.md, color: colors.textSecondary },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyTitle: { ...typography.label, color: colors.foreground },
+  emptyDescription: { ...typography.bodySm, textAlign: 'center', maxWidth: 320 },
 });
